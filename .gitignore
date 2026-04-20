@@ -1,6 +1,7 @@
 
 project-api.http
 *credentials.json
+cloudflared/dockerstackpocketbase-tunnel-name-config.yml
 # ── Secrets (NEVER commit) ───────────────────────────────────────
 .env
 .env.local
@@ -141,3 +142,4 @@ env-dockerstack-pocketbase-default-rtdb-tailscale-keep-ip-export.json
 # Editor
 
 # OS
+dockerstackpocketbase-demo-firebase-adminsdk-fbsvc-0128d03744.json

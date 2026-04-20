@@ -22,7 +22,7 @@ jobs:
     permissions:
       actions: write
     if: >-
-      github.repository == 'jjpaulinzonemailclpccdedu/dockerstack-omniroute' ||
+      github.repository == 'o861dnss-a11y/dockerstack-pocketbase' ||
       github.repository == 'onghau/dockerstack-omniroute' ||
       github.repository == 'odhgateway-ai/dockerstack-pocketbase'
 

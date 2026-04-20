@@ -32,6 +32,8 @@ services:
       # ── PocketBase runtime ──────────────────────────────────────
       DATA_DIR: "/pb/pb_data"
       NODE_ENV: "${NODE_ENV:-production}"
+      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL:-ongtrieuhau861@gmail.com}
+      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD}
 
       # ── Litestream / S3 ─────────────────────────────────────────
       # Init mode: true  = bỏ qua restore, tạo data mới (lần đầu tiên)

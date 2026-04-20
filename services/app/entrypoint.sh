@@ -13,6 +13,12 @@
 #      → bỏ qua restore, tạo database mới (chạy lần đầu tiên)
 #      → PocketBase sẽ tự khởi tạo pb_data/data.db
 #      → Cấu hình xong → dừng container → tắt INIT_MODE
+#
+#  Env vars (tùy chọn):
+#    PB_ADMIN_EMAIL     → email superuser mặc định
+#    PB_ADMIN_PASSWORD  → password superuser mặc định
+#      → Nếu set: tạo mới hoặc upsert mỗi lần khởi động
+#      → Nếu không set: bỏ qua
 # ================================================================
 set -e
 
@@ -51,6 +57,22 @@ else
   fi
 
   echo "✅ [RESTORE] Xong: $DB_PATH ($(du -sh "$DB_PATH" | cut -f1))"
+fi
+
+# ----------------------------------------------------------------
+#  Tạo/cập nhật superuser (nếu có PB_ADMIN_EMAIL + PB_ADMIN_PASSWORD)
+#  Chạy trước khi serve — superuser upsert là idempotent
+# ----------------------------------------------------------------
+if [ -n "${PB_ADMIN_EMAIL}" ] && [ -n "${PB_ADMIN_PASSWORD}" ]; then
+  echo "👤 [ADMIN] Upsert superuser: ${PB_ADMIN_EMAIL}..."
+  if ./pocketbase superuser upsert "${PB_ADMIN_EMAIL}" "${PB_ADMIN_PASSWORD}" \
+      --dir="$DATA_DIR" 2>&1; then
+    echo "✅ [ADMIN] Superuser sẵn sàng."
+  else
+    echo "⚠️  [ADMIN] Upsert thất bại — tiếp tục khởi động (không chặn)."
+  fi
+else
+  echo "ℹ️  [ADMIN] Bỏ qua tạo superuser (PB_ADMIN_EMAIL / PB_ADMIN_PASSWORD chưa set)."
 fi
 
 echo "🚀 Khởi động PocketBase + Litestream replication..."
