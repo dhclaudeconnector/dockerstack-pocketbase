@@ -13,6 +13,13 @@
 # ================================================================
 set -euo pipefail
 
+# ── BuildKit: bật song song layer build + caching tốt hơn ─────
+# DOCKER_BUILDKIT=1    → dùng BuildKit engine (Docker ≥ 18.09)
+# COMPOSE_DOCKER_CLI_BUILD=1 → Compose v1 dùng docker CLI build
+# (Compose v2 tự dùng BuildKit nếu engine hỗ trợ, export này vẫn vô hại)
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -221,6 +228,7 @@ if [ "${DC_VERBOSE:-0}" = "1" ]; then
   echo "  DOMAIN    : ${DOMAIN:-?}"
   echo "  PROFILES  : ${PROFILE_ARGS[*]:-<none>}"
   echo "  FILES     : ${FILES[*]}"
+  echo "  BUILDKIT  : ${DOCKER_BUILDKIT}"
   echo "─────────────────────────────────────────────────"
 fi
 

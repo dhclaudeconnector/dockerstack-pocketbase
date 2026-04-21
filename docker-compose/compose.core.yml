@@ -31,10 +31,14 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:80"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+      # ── Tối ưu hoá: Caddy khởi động < 1s, không cần đợi 10s ──
+      # Giảm start_period từ 10s → 3s.
+      # Giảm interval từ 30s → 5s: cloudflared depends_on caddy healthy,
+      # nên interval ngắn = cloudflared bắt đầu sớm hơn ~25s.
+      start_period: 3s
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   # ── Cloudflared: expose to Internet without opening ports ──────
   cloudflared:

@@ -73,10 +73,16 @@ services:
         - "sh"
         - "-c"
         - "wget -qO- http://localhost:${APP_PORT:-8090}/api/health || exit 1"
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      # ── Tối ưu hoá startup time ─────────────────────────────────
+      # Giảm start_period từ 30s → 10s: S3 restore nhỏ (<5MB) hoàn thành
+      # trong 1–5s, PocketBase ready rất nhanh sau đó.
+      # Giảm interval từ 30s → 5s: phát hiện healthy ngay sau start_period.
+      # Tăng retries lên 6 (=30s window sau start_period) để an toàn cho
+      # trường hợp DB lớn hoặc S3 chậm.
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 6
 
   consul-gateway:
     image: "${PROJECT_NAME:-myapp}-consul-gateway:local"
@@ -108,16 +114,24 @@ services:
       - "caddy_1.reverse_proxy={{upstreams ${CONSUL_GATEWAY_PORT:-18090}}}"
     networks: [app_net]
     restart: unless-stopped
+    # ── Thay đổi quan trọng: service_started thay vì service_healthy ──
+    # Trước: consul-gateway phải đợi app healthy (~60–90s) mới khởi động.
+    # Sau:   consul-gateway khởi động ngay khi app container bắt đầu chạy
+    #        (~2–3s). Trong lúc app đang restore S3, gateway trả 502 cho
+    #        các request đến — chấp nhận được vì app sẽ sẵn sàng sau ~15s.
+    #        Lease manager chạy độc lập, không phụ thuộc app upstream.
     depends_on:
       app:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test:
         - "CMD"
         - "wget"
         - "-qO-"
         - "http://localhost:${CONSUL_GATEWAY_PORT:-18090}/__consul/status"
-      interval: 30s
-      timeout: 10s
+      # Giảm start_period từ 10s → 5s (Node.js khởi động < 1s)
+      # Giảm interval từ 30s → 10s
+      start_period: 5s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s

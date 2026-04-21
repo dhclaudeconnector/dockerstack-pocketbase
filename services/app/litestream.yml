@@ -31,8 +31,14 @@ dbs:
         # → mất tối đa 5s data nếu SIGKILL không có grace period
         sync-interval: 5s
 
-        # Tạo full snapshot mỗi 1h → restore nhanh hơn
-        snapshot-interval: 1h
+        # ── Tối ưu startup time ─────────────────────────────────
+        # Giảm snapshot-interval từ 1h → 30m.
+        # Lý do: khi restore, Litestream phải replay WAL frames từ
+        # snapshot cuối cùng đến hiện tại. Snapshot càng gần thì
+        # số WAL frames cần replay càng ít → restore nhanh hơn.
+        # Với 30m: worst-case replay = 30m × write rate của app.
+        # Chi phí: gấp đôi số lần tạo snapshot (vẫn nhỏ so với WAL).
+        snapshot-interval: 30m
 
         # Giữ 48h generations → tự dọn phiên bản cũ hơn
         retention: 48h
